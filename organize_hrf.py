@@ -109,9 +109,9 @@ print('Copying images...')
 # 1. Get image names
 image_filenames = sorted(listdir('tmp/HRF/images'), key=natural_key)
 # 2. Copy training images
-copy_images('tmp/HRF/images', image_filenames[:15], 'datasets/HRF/training/images')
+copy_images('tmp/HRF/images', image_filenames[:15], 'datasets/HRF/training/img')
 # 2. Copy test images
-copy_images('tmp/HRF/images', image_filenames[-30:], 'datasets/HRF/test/images')
+copy_images('tmp/HRF/images', image_filenames[-30:], 'datasets/HRF/test/img')
 # ----------------------------------------
 
 # Generate training/test labels ----------
