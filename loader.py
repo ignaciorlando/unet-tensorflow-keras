@@ -5,6 +5,7 @@
  * @modify date 2017-05-19 03:06:43
  * @desc [description]
 '''
+import matplotlib.pyplot as plt
 import keras
 from keras.preprocessing.image import ImageDataGenerator
 import scipy.misc as misc
@@ -13,13 +14,15 @@ import os, glob, itertools
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-def folderLoader(data_path):
+def folderLoader(data_path, imageX, imageY):
     def im_iterator(im_list, im_path, gt_path):
         for i in range(99999): #continue the iterator
             for name in im_list:
-                im = misc.imread(os.path.join(im_path, name+'.jpg'))
+                im = misc.imresize(misc.imread(os.path.join(im_path, name+'.jpg')), (imageY, imageX, 3), interp='nearest')
                 im = im[np.newaxis,:,:,:]
-                gt = misc.imread(os.path.join(gt_path, name+'.png')).astype(np.int32)
+                gt = misc.imresize(misc.imread(os.path.join(gt_path, name+'.png')).astype(np.int32), (imageY, imageX, 3), interp='nearest')
+                if np.array_equal(np.unique(gt), np.array([0, 255])):
+                    gt = (gt / 255).astype(np.int32)
                 gt = gt[np.newaxis,:,:]
                 yield im, gt, name
 
@@ -47,10 +50,10 @@ def folderLoader(data_path):
                 0/
 
 '''
-def dataLoader(path, batch_size, imSize):
+def dataLoader(path, batch_size, imSizeX, imSizeY):
 
     def imerge(a, b):
-        for img, label in itertools.izip_longest(a,b):
+        for img, label in itertools.zip_longest(a,b):
             # j is the mask: 1) gray-scale and int8
             yield img, label[:,:,:,0].astype(np.int32)
     
@@ -59,32 +62,40 @@ def dataLoader(path, batch_size, imSize):
                     horizontal_flip=True,
                     vertical_flip=True,
                     )
+    train_data_gen_labels_args = dict(
+                    horizontal_flip=True,
+                    vertical_flip=True,
+                    rescale=1/255
+                    )          
+    test_data_gen_labels_args = dict(
+                    rescale=1/255
+                    )                               
     
     seed = 1
     train_image_datagen = ImageDataGenerator(**train_data_gen_args).flow_from_directory(
-                                path+'train/img',
+                                path+'train/img/',
                                 class_mode=None,
-                                target_size=(imSize, imSize),
+                                target_size=(imSizeY, imSizeX),
                                 batch_size=batch_size,
                                 seed=seed)
-    train_mask_datagen = ImageDataGenerator(**train_data_gen_args).flow_from_directory(
-                                path+'train/gt',
+    train_mask_datagen = ImageDataGenerator(**train_data_gen_labels_args).flow_from_directory(
+                                path+'train/gt/',
                                 class_mode=None,
-                                target_size=(imSize, imSize),
+                                target_size=(imSizeY, imSizeX),
                                 batch_size=batch_size,
                                 color_mode='grayscale',
                                 seed=seed)
 
     test_image_datagen = ImageDataGenerator().flow_from_directory(
-                                path+'test/img',
+                                path+'test/img/',
                                 class_mode=None,
-                                target_size=(imSize, imSize),
+                                target_size=(imSizeY, imSizeX),
                                 batch_size=batch_size,
                                 seed=seed)
-    test_mask_datagen = ImageDataGenerator().flow_from_directory(
-                                path+'test/gt',
+    test_mask_datagen = ImageDataGenerator(**test_data_gen_labels_args).flow_from_directory(
+                                path+'test/gt/',
                                 class_mode=None,
-                                target_size=(imSize, imSize),
+                                target_size=(imSizeY, imSizeX),
                                 batch_size=batch_size,
                                 color_mode='grayscale',
                                 seed=seed)

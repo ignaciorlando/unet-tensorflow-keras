@@ -22,11 +22,11 @@ URL_FILENAMES_LABELS = ['healthy_manualsegm.zip', 'glaucoma_manualsegm.zip', 'di
 ALL_URL_FILENAMES = URL_FILENAMES_IMAGES + URL_FILENAMES_LABELS
 
 # Training data paths
-TRAINING_IMAGES_DATA_PATH = 'HRF/training/images'
-TRAINING_GT_DATA_PATH = 'HRF/training/gt'
+TRAINING_IMAGES_DATA_PATH = 'datasets/HRF/train/img/0'
+TRAINING_GT_DATA_PATH = 'datasets/HRF/train/gt'
 # Test data paths
-TEST_IMAGES_DATA_PATH = 'HRF/test/images'
-TEST_GT_DATA_PATH = 'HRF/test/gt'
+TEST_IMAGES_DATA_PATH = 'datasets/HRF/test/img/0'
+TEST_GT_DATA_PATH = 'datasets/HRF/test/gt'
 
 
 
@@ -57,21 +57,21 @@ def copy_images(root_folder, filenames, data_path):
 
 def copy_labels(root_folder, filenames, data_path):
     # Initialize folders
-    false_class_folder = path.join(data_path, '0')
-    true_class_folder = path.join(data_path, '1')
+    #false_class_folder = path.join(data_path, '0')
+    true_class_folder = path.join(data_path, '0')
     # Create folders
-    if not path.exists(false_class_folder):
-        makedirs(false_class_folder)
+    #if not path.exists(false_class_folder):
+    #    makedirs(false_class_folder)
     if not path.exists(true_class_folder):
         makedirs(true_class_folder)
     # Copy the images
     for i in range(0, len(filenames)):
         current_filename = filenames[i]
         # Open the image
-        labels = misc.imread(path.join(root_folder, current_filename))
+        labels = (misc.imread(path.join(root_folder, current_filename)) / 255).astype('int32')
         # Save the image as a .png file
         misc.imsave(path.join(true_class_folder, current_filename[:-3] + 'png'), labels)
-        misc.imsave(path.join(false_class_folder, current_filename[:-3] + 'png'), invert(labels))
+        #misc.imsave(path.join(false_class_folder, current_filename[:-3] + 'png'), invert(labels))
 
 def natural_key(string_):
     """See http://www.codinghorror.com/blog/archives/001018.html"""
@@ -109,9 +109,9 @@ print('Copying images...')
 # 1. Get image names
 image_filenames = sorted(listdir('tmp/HRF/images'), key=natural_key)
 # 2. Copy training images
-copy_images('tmp/HRF/images', image_filenames[:15], 'datasets/HRF/training/img')
+copy_images('tmp/HRF/images', image_filenames[:15], TRAINING_IMAGES_DATA_PATH)
 # 2. Copy test images
-copy_images('tmp/HRF/images', image_filenames[-30:], 'datasets/HRF/test/img')
+copy_images('tmp/HRF/images', image_filenames[-30:], TEST_IMAGES_DATA_PATH)
 # ----------------------------------------
 
 # Generate training/test labels ----------
@@ -119,7 +119,7 @@ print('Copying labels...')
 # 1. Get labels names
 gt_filenames = sorted(listdir('tmp/HRF/gt'), key=natural_key)
 # 2. Copy training labels
-copy_labels('tmp/HRF/gt', gt_filenames[:15], 'datasets/HRF/training/gt')
+copy_labels('tmp/HRF/gt', gt_filenames[:15], TRAINING_GT_DATA_PATH)
 # 2. Copy test labels
-copy_labels('tmp/HRF/gt', gt_filenames[-30:], 'datasets/HRF/test/gt')
+copy_labels('tmp/HRF/gt', gt_filenames[-30:], TEST_GT_DATA_PATH)
 # ----------------------------------------

@@ -37,33 +37,40 @@ K.set_session(sess)
 K.set_learning_phase(1)
 
 # define data loader (with train and test)
-train_generator, _, train_samples, _ = dataLoader(opt.data_path, opt.batch_size, opt.imSize)
+train_generator, _, train_samples, _ = dataLoader(opt.data_path, opt.batch_size, opt.imSizeX, opt.imSizeY)
+
 # define test loader (optional to replace above test_generator)
-test_generator, test_samples = folderLoader(opt.data_path)
+test_generator, test_samples = folderLoader(opt.data_path, opt.imSizeX, opt.imSizeY)
 opt.iter_epoch = int(train_samples) 
+
 # define input holders
-img_shape = (opt.imSize, opt.imSize, 3)
-img = tf.placeholder(tf.float32, shape=img_shape)
-label = tf.placeholder(tf.int32, shape=(None, opt.imSize, opt.imSize))
+img_shape = (opt.imSizeY, opt.imSizeX, 3)
+#img = tf.placeholder(tf.float32, shape=img_shape)
+img = tf.placeholder(tf.int32, shape=img_shape)
+label = tf.placeholder(tf.int32, shape=(None, opt.imSizeY, opt.imSizeX))
+
 # define model
 with tf.name_scope('unet'):
     model = UNet().create_model(img_shape=img_shape, num_class=opt.num_class)
     img = model.input
     pred = model.output
+
 # define loss
 with tf.name_scope('cross_entropy'):
     cross_entropy_loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label, logits=pred))
+
 # define optimizer
 global_step = tf.Variable(0, name='global_step', trainable=False)
 with tf.name_scope('learning_rate'):
     learning_rate = tf.train.exponential_decay(opt.learning_rate, global_step,
                                            opt.iter_epoch, opt.lr_decay, staircase=True)
 train_step = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cross_entropy_loss, global_step=global_step)
+
 # compute dice score for simple evaluation during training
 # with tf.name_scope('dice_eval'):
 #     dice_evaluator = tf.reduce_mean(dice_coef(label, pred))
 ''' Tensorboard visualization '''
-# cleanup pervious info
+# cleanup previous info
 if opt.load_from_checkpoint == '':
     cf = os.listdir(opt.checkpoint_path)
     for item in cf: 

@@ -46,7 +46,6 @@ class VIS:
         score_mean, score_cls = mean_IU(pred, gt)
         self.mean_iu.append(score_mean)
         self.cls_iu.append(score_cls)
-        
         return score_mean
 
     def compute_scores(self, suffix=0):
@@ -55,6 +54,7 @@ class VIS:
         print ('-'*20)
         print ('overall mean IU: {} '.format(meanIU))
         print ('mean IU per class')
+        print(meanIU_per_cls)
         for i, c in enumerate(meanIU_per_cls):
             print ('\t class {}: {}'.format(i,c))
         print ('-'*20)
@@ -112,12 +112,14 @@ def extract_both_masks(eval_segm, gt_segm, cl, n_cl):
     return eval_mask, gt_mask
 
 def extract_classes(segm):
+    # Identify the classes and the number of classes
     cl = np.unique(segm)
     n_cl = len(cl)
 
     return cl, n_cl
 
 def union_classes(eval_segm, gt_segm):
+    # Gets the union of the classes
     eval_cl, _ = extract_classes(eval_segm)
     gt_cl, _   = extract_classes(gt_segm)
 
